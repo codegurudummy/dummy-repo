@@ -22,4 +22,19 @@ public class DummyFile {
     public void s3ListObjectsV2() {
         s3Client.listObjectsV2(new ListObjectsV2Request());
     }
+    
+    // Should flag and suggest Transfer Manager
+    public void s3MultiPartUpload() {
+        s3Client.initiateMultipartUpload(new InitiateMultipartUploadRequest());
+    }
+
+    // Should not flag
+    public void wrongReceiver() {
+        fooClient.listObjects(new ListObjectsRequest());
+    }
+
+    // Should flag
+    public void kinesisEnhancedFanOut() {
+        kinesisClient.getRecords(null);
+    }
 }
