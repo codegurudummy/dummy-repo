@@ -69,6 +69,7 @@ public final class JnaUtils {
     private static final MxnetLibrary LIB = LibUtils.loadLibrary();
 
     private static final Map<String, FunctionInfo> OPS = getNdArrayFunctions();
+    private static final Set<String> FEATURES = getFeaturesInternal();
 
     private JnaUtils() {}
 
@@ -221,6 +222,10 @@ public final class JnaUtils {
     /////////////////////////////////
 
     public static Set<String> getFeatures() {
+        return FEATURES;
+    }
+
+    private static Set<String> getFeaturesInternal() {
         PointerByReference ref = new PointerByReference();
         NativeSizeByReference outSize = new NativeSizeByReference();
         checkCall(LIB.MXLibInfoFeatures(ref, outSize));
@@ -527,10 +532,7 @@ public final class JnaUtils {
         checkCall(LIB.MXNDArrayGetContext(ndArray, deviceType, deviceId));
         String deviceTypeStr = MxDeviceType.fromDeviceType(deviceType.get(0));
         // CPU is special case which don't have device id
-        if (Device.Type.CPU.equals(deviceTypeStr)) {
-            return new Device(Device.Type.CPU);
-        }
-        return new Device(deviceTypeStr, deviceId.get(0));
+        return Device.of(deviceTypeStr, deviceId.get(0));
     }
 
     public static Shape getShape(Pointer ndArray) {
