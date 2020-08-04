@@ -20,75 +20,41 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Map;
 
-public final class GluonCvMetaBuilder {
+public final class GluonCvMetaBuilder extends MetaBuilder<GluonCvMetaBuilder> {
 
     private String filePath = "python/mxnet/gluoncv_import.py";
     private String pythonPath = "python";
     private GluonCvArgs args;
-    private String name;
-    private String description;
-    private String artifactId;
-    private String baseDir;
-    private Application application;
-    private Map<String, String> properties;
-    private Map<String, Object> arguments;
-
-    public GluonCvMetaBuilder optFilePath(String filePath) {
-        this.filePath = filePath;
-        return this;
-    }
-
-    public GluonCvMetaBuilder optPythonPath(String pythonPath) {
-        this.pythonPath = pythonPath;
-        return this;
-    }
 
     public GluonCvMetaBuilder setArgs(GluonCvArgs args) {
         this.args = args;
         return this;
     }
 
-    public GluonCvMetaBuilder setBaseDir(String baseDir) {
-        this.baseDir = baseDir;
+    @Override
+    public GluonCvMetaBuilder self() {
         return this;
     }
 
-    public GluonCvMetaBuilder setName(String name) {
-        this.name = name;
+    @Override
+    public GluonCvMetaBuilder optFilePath(String filePath) {
+        this.filePath = filePath;
         return this;
     }
 
-    public GluonCvMetaBuilder setDescription(String description) {
-        this.description = description;
+    @Override
+    public GluonCvMetaBuilder optPythonPath(String pythonPath) {
+        this.pythonPath = pythonPath;
         return this;
     }
 
-    public GluonCvMetaBuilder setApplication(Application application) {
-        this.application = application;
-        return this;
-    }
-
-    public GluonCvMetaBuilder setArtifactId(String artifactId) {
-        this.artifactId = artifactId;
-        return this;
-    }
-
-    public GluonCvMetaBuilder setProperties(Map<String, String> properties) {
-        this.properties = properties;
-        return this;
-    }
-
-    public GluonCvMetaBuilder setArguments(Map<String, Object> arguments) {
-        this.arguments = arguments;
-        return this;
-    }
-
+    @Override
     public MetadataBuilder prepareBuild() throws IOException, InterruptedException {
         Exporter.processSpawner(filePath, pythonPath, args);
-        if (application == Application.CV.IMAGE_CLASSIFICATION
-                && "imagenet".equals(properties.get("dataset"))) {
+        MetadataBuilder builder = super.prepareBuild();
+        if (getApplication() == Application.CV.IMAGE_CLASSIFICATION
+                && "imagenet".equals(getProperties().get("dataset"))) {
             Path synset = Paths.get(args.getOutputPath(), args.getName(), "synset.txt");
             if (!Files.exists(synset)) {
                 URL url =
@@ -99,17 +65,8 @@ public final class GluonCvMetaBuilder {
                 }
             }
         }
-
-        return MetadataBuilder.builder()
-                .setGroupId("ai.djl.mxnet")
-                .setApplication(application)
+        return builder.setGroupId("ai.djl.mxnet")
                 .setArtifactDir(Paths.get(args.getOutputPath(), args.getName()))
-                .setArtifactName(args.getName())
-                .setName(name)
-                .setDescription(description)
-                .setArtifactId(artifactId)
-                .setBaseDir(baseDir)
-                .addProperties(properties)
-                .addArguments(arguments);
+                .setArtifactName(args.getName());
     }
 }
